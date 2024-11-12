@@ -21,6 +21,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/products/[id]/[team]", "app/page.js", "components/AuthProvider.js", "app/MyServer", "app/loading.js", "app/api/auth/[...nextauth]/options.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/products/[id]/[team]", "app/page.js", "components/AuthProvider.js", "app/MyServer", "app/loading.js", "app/api/auth/[...nextauth]/options2.ts", "models/Student.ts", "app/allproduct2/page.jsx", "components/AllProducts2.jsx", "lib/supplier.js", "hooks/useStudent.ts", "app/profile/layout.tsx", "middleware.ts", "models/Employee.js", "lib/employee.js", "components/AddEmployeeForm.tsx"],
   "exclude": ["node_modules"]
 }

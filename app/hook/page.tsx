@@ -7,19 +7,21 @@ import React, {
   useReducer,
   HTMLInputAutoCompleteAttribute,
 } from "react";
-import { useRouter } from "next/navigation";
 
-export default function HookPage() {
+import { useRouter } from "next/navigation";
+import { getSession } from "next-auth/react";
+
+export default async function HookPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const data = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const [style, setStyle] = useState("");
-
+  
   const goHome = () => {
     router.push("/");
-  };
-
+  };  
+  
   const getUsername = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUsername(event.target.value);
   };
@@ -43,7 +45,7 @@ export default function HookPage() {
   };
 
   return (
-    <div className="flex flex-col justify-center mx-auto text-center">
+    <div className="flex flex-col justify-center mx-auto text-center">      
       <div>
         <button className="btn btn-primary" onClick={goHome}>
           Home

@@ -4,6 +4,10 @@ const nextConfig = {
         // Ignore TypeScript errors during the build process
         ignoreBuildErrors: true,
       },      
+      eslint: {
+        ignoreDuringBuilds: true,
+      },
+      //reactStrictMode: false
     // experimental: {
     //   serverActions: true,
     // }    

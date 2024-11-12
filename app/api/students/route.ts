@@ -1,12 +1,24 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
+import mongodbConnect from "@/lib/mongodb";
+import Student from "@/models/Student";
 
-const students = [
-  { id: 1, studentName: "A", score: 100 },
-  { id: 2, studentName: "B", score: 200 },
-  { id: 3, studentName: "C", score: 300 },
-  { id: 4, studentName: "D", score: 400 },
-];
+export async function GET(request: NextRequest) {
+  try {
+    await mongodbConnect();
+    const students = await Student.find().sort({supplierId:1});
 
-export function GET(request: any) {
-  return NextResponse.json(students, { status: 200 });
+    const studentMap = students.map((student) => {
+      return {
+        //_id: student._id,
+        studentId: student.studentId,
+        studentName: student.studentName,
+        score: student.score,
+        notes: student.notes,                                               
+      };
+    });
+    return NextResponse.json(studentMap, { status: 200 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Cannot get";
+    return NextResponse.json({ error: errorMessage }, { status: 400 });
+  }
 }

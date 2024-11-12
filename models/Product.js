@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+//import mongodbConnect from "@/lib/mongodb";
 
 const productSchema = new Schema(
   {
@@ -13,6 +14,6 @@ const productSchema = new Schema(
   }
 );         
 
-const Product = mongoose.models?.Products || mongoose.model("Products", productSchema);
+const Product = mongoose.models?.Product || mongoose.model("Product", productSchema);
 
 export default Product;

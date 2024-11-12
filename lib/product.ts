@@ -14,7 +14,7 @@ export async function addProduct(product:ProductProps):Promise<void> {
     }
 
     try {
-        await Product.create(newProduct);
+        await Product.create(newProduct);        
     } catch (error: unknown) {
         if (error instanceof Error) {
             console.error('Error creating product:', error);

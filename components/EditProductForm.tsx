@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { mutate } from "swr";
 import Title from "@/components/Title";
-import { setDefaultAutoSelectFamily } from "net";
+//import { setDefaultAutoSelectFamily } from "net";
 
 interface Product {
   sku: string;

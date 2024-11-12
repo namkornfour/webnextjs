@@ -1,98 +1,125 @@
-import NextAuth, { NextAuthOptions, Session } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
+import { NextAuthOptions, DefaultSession, Session } from "next-auth";
+//import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
-import User from '@/models/User';
+import GoogleProvider from "next-auth/providers/google";
+import User from "@/models/User";
 import mongodbConnect from "@/lib/mongodb";
+//import bcrypt from "bcryptjs";
 
-// Define the User type
-interface UserProps {
-  //id: string;
+interface Credentials {
   username: string;
   password: string;
-  /*comments: string;
-  amount: number;
-  age: number;
-  name:string;
-  email:string;*/
 }
 
-interface SessionUser {
+/*interface UserSession extends DefaultSession {
+  user: {
+    amount?: number; // เพิ่ม amount
+  } & DefaultSession["user"]; // นำฟิลด์ user มาจาก DefaultSession
+}*/
+
+interface CustomUser {
+  id?: string;
+  name?: string;
+  email?: string;
+  image?: string;
+  amount?: number;
   username?: string;
-  password?: string;
-}
-
-// ขยายประเภทของ Session
-interface CustomSessionUser extends SessionUser {
-  name?: string | null;
-  email?: string | null;
-  image?: string | null;
 }
 
 export const options: NextAuthOptions = {
   providers: [
     CredentialsProvider({
-      name: "username/password",
+      // ตัวอย่างการตั้งค่า CredentialsProvider
+      name: "Credentials",
       credentials: {
-        username: { label: "Username", type: "text", placeholder: "username" },
-        password: { label: "Password", type: "password" }
+        username: { label: "Username", type: "text" },
+        password: { label: "Password", type: "password" },
       },
-      async authorize(credentials, request): Promise<any> {
-        /*const user: UserProps = {
-          id: "101",
-          username: "tee",
-          password: "tr",         
+      authorize: async (credentials) => {
+        // โค้ดการยืนยันผู้ใช้ เช่นการเช็ค username และ password
+        const { username, password } = credentials as Credentials;
+
+        /*const user = {
+          id: "1",
+          
+          name: "Tee",
+          email: "user@example.com",
+          amount: 10,
         };
 
-        return user;*/
-        
-        await mongodbConnect();
-
-        //const user = await User.findOne({username: credentials?.username, password: credentials?.password});                
-        const user = await User.findOne();
-
-        console.log("Data Users : ", user);
-
-        if (user && 'username' in user && 'password' in user) {
-          // ตรวจสอบว่ามีคุณสมบัติ username และ password
-          return user as UserProps;  // แปลงเป็น UserProps ถ้าเงื่อนไขถูกต้อง
-        } else {
-          return null;
-        }
-
-        /*if (
-          credentials?.username === user.username &&
-          credentials?.password === user.password
-        ) {
+        if (username === "tee" && password === "tr") {
           return user;
         } else {
-          return null;                        
+          return null;
         }*/
+
+        await mongodbConnect();
+
+        const user = await User.findOne({ username, password });
+        console.log(user);
+
+        if (user) {
+          return {
+            id: user._id,
+            name: user.username,
+            email: user.comments,
+            amount: user.amount,
+            username: user.username,
+          };
+        } else {
+          console.log("user not fuond");
+          return null;
+        }
       },
     }),
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      name: "Google",
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     }),
-  ],  
-  callbacks : {
-    async jwt({token, user,account}) {
-      if ('username' in user && 'password' in user) {
-        token.username = user.username;
-        token.password = user.password;
+  ],
+  callbacks: {
+    async jwt({ token, user }) {
+      // ตรวจสอบว่ามี user หรือไม่ก่อนที่จะเพิ่ม score
+      if (user) {
+        token.user = { ...user }; // เพิ่ม user เข้าไปใน token
       }
-      return token;
+      return token; // คืนค่า token
     },
-    async session({ session, token }) {
-      session.user = {
-        ...session.user,
-        username: typeof token.username === 'string' ? token.username : undefined,
-        password: typeof token.password === 'string' ? token.password : undefined,
-      } as any;
-      return session;
-    }
-  }
+    async session({ session, token }): Promise<Session> {
+      const user = token?.user as CustomUser | undefined;
+
+      // ตรวจสอบว่า session.user มีอยู่หรือไม่
+      if (session.user) {
+        // ถ้ามี user ให้เพิ่ม amount
+        //(session.user as { amount?: number }).amount = user?.amount ?? 0; // ถ้า user มีให้ใช้ amount จาก user ถ้าไม่มีก็ใช้ 0
+        const userAmount = user?.amount ?? 0;
+        const username = user?.username ?? "";
+
+        session.user.amount = userAmount;
+        session.user.username = username;
+      }
+      return session as Session;
+    },
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+  pages: {
+    signIn: "/auth/signin", // ตั้งค่าเส้นทางสำหรับการเข้าสู่ระบบ
+  },
+  cookies: {
+    sessionToken: {
+      name: "next-auth.session-token", // ชื่อ cookie
+      options: {
+        httpOnly: true, // cookie จะไม่สามารถเข้าถึงได้จาก JavaScript
+        secure: process.env.NODE_ENV === "production", // ใช้ secure cookies ใน production
+        sameSite: "lax", // ช่วยป้องกัน CSRF
+        path: "/", // เส้นทางของ cookie
+        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // หมดอายุใน 30 วัน
+      },
+    },
+  },
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 วัน
+  },
 };
-
-const handler = NextAuth(options);
-
-export { handler as GET, handler as POST };

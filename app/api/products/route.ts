@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   const headers = new Headers(request.headers);
 
   await mongodbConnect();
-
+   
   const products = await Product.find();
 
   const productMap = products.map((product) => {

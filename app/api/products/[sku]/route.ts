@@ -14,6 +14,7 @@ export async function GET(request: Request, { params }: Params) {
     const product = await Product.findOne({ productSKU: sku });
 
     if (product) {
+      
       const prvProduct = {
         productSKU: product.productSKU,
         productName: product.productName,
